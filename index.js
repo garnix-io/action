@@ -1,6 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const request = require('request');
+const c = require('ansi-colors');
 
 try {
   const baseUrl = core.getInput('url');
@@ -20,11 +21,11 @@ try {
         core.error();
     }
     if(jBody.status === "Success") {
-      core.info("Run succeded!");
-      core.info("The following packages were built:");
+      core.info(c.green("Run succeded!"));
+      core.info("The following packages are part of your flake:");
     } else {
-      core.notice("Run failed!");
-      core.info("The following packages were built or attempted:");
+      core.notice(c.red("Run failed!"));
+      core.info("The following packages are part of your flake:");
     }
 
     for (var sys in jBody.packages) {
@@ -32,11 +33,11 @@ try {
         let pkgs = (jBody.packages)[sys]
         for (var pkg in pkgs) {
             if (pkgs[pkg] === null) {
-                core.info(`${pkg} (not tried)`);
+                core.info(`  ${pkg} ${c.yellow("(not tried)")}`);
             } else {
                 let groupName = pkgs[pkg].status === "Success" ?
-                      `${pkg} (succeded)` :
-                      `${pkg} (failed)`
+                      `  ${pkg} ${c.green("(succeded)")}` :
+                      `  ${pkg} ${c.red("(failed)")}`
                 core.startGroup(groupName);
                 if (pkgs[pkg].logs === null) {
                     core.info("No logs available");
