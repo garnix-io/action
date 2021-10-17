@@ -1,0 +1,16 @@
+name: 'Response action test'
+description: 'Query server for results of action'
+inputs:
+  url:  # id of input
+    description: 'URL to query'
+    required: true
+  token:
+    description: 'Github token'
+    required: false
+
+outputs:
+  result: # id of output
+    description: 'The test result'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
