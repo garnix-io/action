@@ -39037,22 +39037,25 @@ try {
     }
 
     for (var sys in jBody.packages) {
-        core.startGroup(`System "${sys}"`);
+        core.info(`System "${sys}" packages`);
         let pkgs = (jBody.packages)[sys]
         for (var pkg in pkgs) {
-            let groupName = pkgs[pkg].status === "Success" ?
-                  `Package "${pkg}" succeeded!` :
-                  `Package "${pkg}" failed!`
-            core.startGroup(groupName);
-            if (pkgs[pkg].logs === null) {
-                core.info("No logs available");
+            if (pkgs[pkg] === null) {
+                core.info(`${pkg} (not tried)`);
             } else {
-                core.info("Logs:");
-                core.info(pkgs[pkg].logs);
+                let groupName = pkgs[pkg].status === "Success" ?
+                      `${pkg} (succeded)` :
+                      `${pkg} (failed)`
+                core.startGroup(groupName);
+                if (pkgs[pkg].logs === null) {
+                    core.info("No logs available");
+                } else {
+                    core.info("Logs:");
+                    core.info(pkgs[pkg].logs);
+                }
+                core.endGroup();
             }
-            core.endGroup();
         }
-        core.endGroup();
     }
   })
 } catch (error) {
