@@ -39012,24 +39012,49 @@ const github = __nccwpck_require__(5438);
 const request = __nccwpck_require__(8699);
 
 try {
-  const payload = JSON.stringify(github.context.payload, undefined, 2)
   const baseUrl = core.getInput('url');
   const token = core.getInput('token');
   const tokenStr = typeof token === 'undefined' ? "" : "?token=" + token;
   const url = baseUrl + github.context.repo.owner + "/"
          + github.context.repo.repo + "/commit/" + github.context.sha + tokenStr ;
-  console.log(`Querying ${url}!`);
+  console.log(`Starting run...`);
   let result = "success";
   request.post(url, (err, response, body) => {
-    if(response.statusCode != 200) {
-      core.notice(body);
-      result = "failure";
-      core.setFailed("Server says bad!")
+    var jBody;
+    try {
+        jBody = JSON.parse(body);
+    } catch (err) {
+        core.notice(body);
+        core.setFailed("There was a problem with your run");
+        core.error();
+    }
+    if(jBody.status === "Success") {
+      core.info("Run succeded!");
+      core.info("The following packages were built:");
     } else {
-      core.info(body);
+      core.notice("Run failed!");
+      core.info("The following packages were built or attempted:");
+    }
+
+    for (var sys in jBody.packages) {
+        core.startGroup(`System "${sys}"`);
+        let pkgs = (jBody.packages)[sys]
+        for (var pkg in pkgs) {
+            let groupName = pkgs[pkg].status === "Success" ?
+                  `Package "${pkg}" succeeded!` :
+                  `Package "${pkg}" failed!`
+            core.startGroup(groupName);
+            if (pkgs[pkg].logs === null) {
+                core.info("No logs available");
+            } else {
+                core.info("Logs:");
+                core.info(pkgs[pkg].logs);
+            }
+            core.endGroup();
+        }
+        core.endGroup();
     }
   })
-  core.setOutput("result", result);
 } catch (error) {
   core.setFailed(error.message);
 }
